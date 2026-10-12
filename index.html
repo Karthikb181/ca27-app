@@ -28,6 +28,7 @@ body.fm:has(.timer-card) header{opacity:.35;transition:opacity .4s}
     <button id="nb" onclick="askNotify()" class="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-xs">🔔 Reminders</button>
     <button onclick="openBk()" class="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-xs">Backup</button>
     <button onclick="openSyn()" class="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-xs">☁ Sync</button>
+    <button onclick="openMen()" class="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-xs">👩‍🏫 Mentor<span id="men-dot"></span></button>
     <button onclick="openShare()" class="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-xs">WhatsApp</button>
     <button onclick="openReset()" class="px-3 py-1.5 rounded-lg bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 text-xs font-semibold">Reset</button>
   </div>
@@ -86,6 +87,18 @@ body.fm:has(.timer-card) header{opacity:.35;transition:opacity .4s}
   <div id="syn-s" class="text-xs text-slate-500"></div>
   <div class="flex gap-2"><button onclick="saveSyn()" class="flex-1 py-2.5 rounded-xl bg-indigo-600 text-white text-xs font-semibold">Save and sync now</button><button onclick="discSyn()" class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-semibold">Disconnect</button></div>
   <p class="text-[11px] text-slate-500">The token is stored only in this browser and is never included in backups or WhatsApp messages. If both devices changed since the last sync, they are merged.</p>
+</div></div>
+<div id="men" class="hidden fixed inset-0 z-[90] bg-black/70 items-center justify-center p-4"><div class="bg-white dark:bg-slate-900 rounded-2xl p-5 w-full max-w-md max-h-[92vh] overflow-y-auto space-y-3">
+  <div class="flex justify-between font-bold text-sm"><span>Share live progress with your mentor</span><button onclick="closeMen()">✕</button></div>
+  <p class="text-xs text-slate-500">Your progress summary is sent to a small <b>public</b> GitHub repository. Your mentor opens a link and watches it update live. She can only view it. Your token never leaves this browser. See MENTOR_SETUP.txt for the 5-minute setup.</p>
+  <label class="block text-xs text-slate-500">Share repository (username/repo)<input id="mn-r" placeholder="yourname/ca27-mentor" class="px-2 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs w-full mt-1 text-slate-800 dark:text-slate-100"></label>
+  <label class="block text-xs text-slate-500">Your name (shown to mentor)<input id="mn-n" placeholder="Karthikeyan" class="px-2 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs w-full mt-1 text-slate-800 dark:text-slate-100"></label>
+  <label class="flex items-center gap-2 text-xs"><input id="mn-c" type=checkbox>Also share my test comments</label>
+  <label class="flex items-center gap-2 text-xs"><input id="mn-on" type=checkbox checked>Sharing is ON (untick to pause)</label>
+  <div id="mn-s" class="text-xs text-slate-500"></div>
+  <div id="mn-l" class="hidden text-xs break-all p-2 rounded-lg bg-indigo-50 dark:bg-indigo-950/50"></div>
+  <div class="flex gap-2"><button onclick="saveMen()" class="flex-1 py-2.5 rounded-xl bg-indigo-600 text-white text-xs font-semibold">Save and share now</button><button onclick="copyMen()" class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-semibold">Copy link</button><button onclick="stopMen()" class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-semibold">Stop</button></div>
+  <p class="text-[11px] text-slate-500">Uses the same token as Sync. Add the share repository to that token (Contents: read and write). Shared: hours, subject and syllabus progress, test scores, questions solved, today's plan and whether you are studying right now. Not shared: backups, mistakes, WhatsApp numbers, token.</p>
 </div></div>
 <div id="shr" class="hidden fixed inset-0 z-[88] bg-black/70 items-center justify-center p-4"><div class="bg-white dark:bg-slate-900 rounded-2xl p-5 w-full max-w-md max-h-[92vh] overflow-y-auto space-y-3">
   <div class="flex justify-between font-bold text-sm"><span>Send progress on WhatsApp</span><button onclick="closeShare()">✕</button></div>
@@ -168,11 +181,11 @@ function load(){let s=fresh();try{let p=JSON.parse(localStorage.getItem('ca_v3')
   mig(s);const d=s.slots;if(d.length===2&&d[0].id==='a'&&d[0].from==='06:00'&&d[0].to==='09:00'&&d[1].id==='b'&&d[1].from==='09:30'&&d[1].to==='12:30'){d[0].to='06:25';d[1].from='06:30';d[1].to='06:55'}
   return s}
 let S=load(),tab='dash',q='',armed='',op={};
-function mig(s){s.qs=s.qs||{};s.mistakes=s.mistakes||[];s.exams=s.exams||{'Group 1':s.exam||'','Group 2':s.exam||''};s.avail=s.avail||8;s.created=s.created||Date.now();(s.subjects||[]).forEach(x=>{if(!x.pri)x.pri=2});(s.slots||[]).forEach(x=>{if(x.fsec===undefined)x.fsec=(x.fm||0)*60});return s}
+function mig(s){s.qs=s.qs||{};s.lcr=s.lcr||[];s.mistakes=s.mistakes||[];s.exams=s.exams||{'Group 1':s.exam||'','Group 2':s.exam||''};s.avail=s.avail||8;s.created=s.created||Date.now();(s.subjects||[]).forEach(x=>{if(!x.pri)x.pri=2});(s.slots||[]).forEach(x=>{if(x.fsec===undefined)x.fsec=(x.fm||0)*60});return s}
 function snapLog(){S.log=S.log||{};const d=S.statsDate;if(!d)return;
   if(!(S.todayMin>0||S.slots.some(x=>x.ok)||S.tasks.some(x=>x.done))){delete S.log[d];return}
   S.log[d]={min:S.todayMin,pomo:S.todayPomo,slots:S.slots.map(x=>({from:x.from,to:x.to,title:x.title,type:x.type,ok:x.ok,fm:x.fm||0,fsec:x.fsec||0,comment:x.comment||'',p:path(x,x.title)})),tasks:S.tasks.map(t=>({text:t.text,subject:t.subject,type:t.type,done:t.done,p:path(t,t.subject)}))}}
-function save(){if(!noStamp)S.updated=Date.now();snapLog();try{localStorage.setItem('ca_v3',JSON.stringify(S))}catch(e){toast('Could not save: browser storage is full or blocked.')}schedSync()}
+function save(){if(!noStamp)S.updated=Date.now();snapLog();try{localStorage.setItem('ca_v3',JSON.stringify(S))}catch(e){toast('Could not save: browser storage is full or blocked.')}schedSync();mentorSched()}
 function roll(){const t=today();if(S.statsDate===t)return false;snapLog();S.statsDate=t;S.todayMin=0;S.todayPomo=0;S.slots=S.slots.filter(x=>x.repeat!==false);S.slots.forEach(x=>{x.ok=false;x.fm=0;x.fsec=0;x.title='';x.ch=x.ko=x.sb='';x.comment=''});S.tasks=S.tasks.filter(x=>!x.done);save();return true}
 function toast(m){const t=$('toast');t.textContent=m;t.classList.remove('hidden');clearTimeout(toast.h);toast.h=setTimeout(()=>t.classList.add('hidden'),2600)}
 
@@ -216,7 +229,7 @@ function finishTimer(){pause();hideBig();beep();try{navigator.vibrate&&navigator
   else{setMode('pomodoro');toast('Break over. Ready for the next session.')}}
 
 /* ---------- views ---------- */
-const TABS=[['dash','Dashboard'],['subj','Subjects'],['day','Day tracker'],['habit','Habits'],['plan','Planner'],['rev','Revision'],['test','Tests'],['mis','Mistakes'],['one','1% Better'],['ana','Analytics'],['cht','Charts']];
+const TABS=[['dash','Dashboard'],['subj','Subjects'],['day','Day tracker'],['habit','Habits'],['plan','Planner'],['rev','Revision'],['lcr','Lecture Concept Revision'],['test','Tests'],['mis','Mistakes'],['one','1% Better'],['ana','Analytics'],['cht','Charts']];
 const V={
 dash(){if(!run&&tfresh&&mode==='pomodoro')sec=focusSecs();const a=activeSlot(),t=stats(),v=S.slots.filter(s=>s.ok).length,tgt=Math.max(60,t.pace*60);
   return `${banners()}<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -332,7 +345,35 @@ ana(){snapLog();const t=stats(),f=aFil,tdy=today();
   ${accCard()}
   <div class="grid gap-4 sm:grid-cols-3">${stat('Tests written',S.tests.length)}${stat('Syllabus progress',t.pct+'%','text-indigo-600')}${stat('Total focus time logged',dur(S.total),'text-emerald-600','Lecture + study timers only')}</div>
   ${card('space-y-3',`<h3 class="font-bold text-sm">Score by subject</h3>${S.subjects.map(sb=>{const ts=S.tests.filter(x=>x.subject===sb.name),g=ts.reduce((a,x)=>a+x.got,0),m=ts.reduce((a,x)=>a+x.total,0),p=m?Math.round(g/m*100):0;
-   return `<div><div class="flex justify-between text-xs"><span class="font-semibold">${esc(sb.name)} <span class="text-slate-400 font-normal">(${ts.length} tests)</span></span><span>${g} / ${m} (${p}%)</span></div>${bar(p)}</div>`}).join('')}`)}`}
+   return `<div><div class="flex justify-between text-xs"><span class="font-semibold">${esc(sb.name)} <span class="text-slate-400 font-normal">(${ts.length} tests)</span></span><span>${g} / ${m} (${p}%)</span></div>${bar(p)}</div>`}).join('')}`)}`},
+lcr(){const t=today(),rows=[...S.lcr].sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  const th='border border-slate-400 dark:border-slate-600 bg-slate-300 dark:bg-slate-700 text-slate-900 dark:text-slate-100 font-bold text-center px-3 py-2';
+  const rv=(r,i,n)=>{const d=addDays(r.date,n),done=(r.rv||[])[i],due=!done&&d&&d<=t,late=!done&&d&&d<t;
+    return `<td class="border border-slate-200 dark:border-slate-700 p-2 text-center whitespace-nowrap ${done?'bg-emerald-50 dark:bg-emerald-950/30':late?'bg-rose-50 dark:bg-rose-950/30':due?'bg-amber-50 dark:bg-amber-950/30':''}"><label class="inline-flex items-center gap-1.5 cursor-pointer"><input type="checkbox" ${done?'checked':''} ${d?'':'disabled'} onchange="lcrRv('${r.id}',${i},this.checked)"><span class="font-mono ${late?'text-rose-600 font-semibold':''}">${d?esc(d):'-'}</span></label></td>`};
+  const tx=(r,f,w)=>`<td class="border border-slate-200 dark:border-slate-700 p-1"><input value="${esc(r[f])}" onchange="lcrUp('${r.id}','${f}',this.value)" class="${inp} ${w} text-center"></td>`;
+  const body=rows.map(r=>`<tr>
+    <td class="border border-slate-200 dark:border-slate-700 p-1"><input type="date" value="${esc(r.date)}" onchange="lcrUp('${r.id}','date',this.value)" class="${inp}"></td>
+    <td class="border border-slate-200 dark:border-slate-700 p-2 text-center font-semibold">${r.date?['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][new Date(r.date+'T00:00:00').getDay()]:'-'}</td>
+    <td class="border border-slate-200 dark:border-slate-700 p-1"><select onchange="lcrUp('${r.id}','subject',this.value)" class="${inp} w-full min-w-[11rem]"><option value="">Subject</option>${subOpts(r.subject)}</select></td>
+    ${tx(r,'lf','w-24')}${tx(r,'lt','w-24')}${tx(r,'sf','w-24')}${tx(r,'st','w-24')}
+    ${rv(r,0,1)}${rv(r,1,3)}${rv(r,2,5)}
+    <td class="p-1"><button onclick="lcrDel('${r.id}')" title="Delete" class="px-2">🗑</button></td></tr>`).join('');
+  const D=lcrD||t,SH=['FR','AFM','Auditing','DT','IDT'];
+  const sumCell=(sj,i,n)=>{const l=S.lcr.filter(r=>r.subject===sj&&r.date&&r.date===addDays(D,-n));
+    return `<td class="border border-slate-300 dark:border-slate-600 p-2 min-w-[9rem] ${l.length&&l.every(r=>(r.rv||[])[i])?'bg-emerald-50 dark:bg-emerald-950/30':l.length?'bg-amber-50 dark:bg-amber-950/30':''}">${l.length?l.map(r=>`<label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" ${(r.rv||[])[i]?'checked':''} onchange="lcrRv('${r.id}',${i},this.checked)"><span>${esc([r.lf,r.lt].filter(Boolean).join(' - ')||'Lecture')}<span class="text-slate-400"> (${esc(r.date.slice(5))})</span></span></label>`).join(''):'<span class="text-slate-400">-</span>'}</td>`};
+  const sth='border border-slate-300 dark:border-slate-600 px-3 py-2 text-left font-semibold';
+  const summary=card('p-0 overflow-x-auto',`<table class="w-full text-xs border-collapse min-w-[560px]">
+   <thead><tr><th colspan="3" class="p-2"></th><th class="p-2 text-right font-semibold text-sm">Date</th><th class="p-2"><input type="date" value="${esc(D)}" onchange="lcrD=this.value;render()" class="${inp}"></th></tr>
+   <tr><th class="${sth}">Subject</th><th class="${sth}">Revision 1</th><th class="${sth}">Revision 2</th><th class="${sth}">Revision 3</th><th class="w-0"></th></tr></thead>
+   <tbody>${SH.map((n,k)=>{const sj=(S.subjects[k]||{}).name||'';return `<tr><td class="${sth} text-sm">${n}</td>${sumCell(sj,0,1)}${sumCell(sj,1,3)}${sumCell(sj,2,5)}<td></td></tr>`}).join('')}</tbody></table>`);
+  const pend=S.lcr.reduce((n,r)=>n+[1,3,5].filter((d,i)=>!(r.rv||[])[i]&&r.date&&addDays(r.date,d)<=t).length,0);
+  return `<h2 class="font-bold">Lecture concept revision</h2>${summary}<p class="text-xs text-slate-500 -mt-2">Grid above: lectures whose revision falls on the chosen date (Revision 1 = 1 day after the lecture, Revision 2 = 3 days, Revision 3 = 5 days).</p>
+  <div class="flex flex-wrap items-center justify-between gap-2"><h3 class="font-semibold text-sm">Lecture log</h3><div class="flex items-center gap-3"><span class="text-xs ${pend?'text-amber-600 font-semibold':'text-slate-500'}">${pend} revision${pend===1?'':'s'} due</span><button onclick="lcrAdd()" class="${btn('bg-indigo-600')}">+ Add row</button></div></div>
+  ${card('p-0 overflow-x-auto',`<table class="w-full text-xs border-collapse min-w-[1000px]">
+   <thead><tr><th rowspan="2" class="${th} align-bottom">Date</th><th rowspan="2" class="${th} align-bottom">Day</th><th rowspan="2" class="${th} align-bottom">Subject</th><th colspan="2" class="${th}">Lecture</th><th colspan="2" class="${th}">Sums</th><th rowspan="2" class="${th}">Revision 1<br>(D + 1)</th><th rowspan="2" class="${th}">Revision 2<br>(D+3)</th><th rowspan="2" class="${th}">Revision 3<br>(D+5)</th><th rowspan="2" class="w-8"></th></tr>
+   <tr><th class="${th}">From</th><th class="${th}">To</th><th class="${th}">From</th><th class="${th}">To</th></tr></thead>
+   <tbody>${body||'<tr><td colspan="11" class="p-5 text-slate-500">No lectures added yet. Press "+ Add row" to log one.</td></tr>'}</tbody></table>`)}
+  <p class="text-xs text-slate-500">Revision dates are worked out from the lecture date (D). Tick a date once you have revised. Amber means due today, red means overdue.</p>`}
 };
 
 const BOX='bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800';
@@ -456,7 +497,7 @@ function habitStats(){const t=today(),n=S.habits.length,l=S.hlog[t]||[],td=S.hab
   let tick=0;ds.forEach(d=>{tick+=S.habits.filter(h=>S.hlog[d].includes(h.id)).length});const ks=[...ds].sort(),span=ks.length?Math.round((new Date(t)-new Date(ks[0]))/864e5)+1:0,poss=span*n;
   return{n,td,tdp:n?Math.round(td/n*100):0,tick,poss,allp:poss?Math.round(tick/poss*100):0,days:span}}
 
-function persistT(){try{if(tfresh)localStorage.removeItem('ca_timer');else localStorage.setItem('ca_timer',JSON.stringify({mode,sec,run,endAt,runMin,runSlot,tslot,segStart}))}catch(e){}}
+function persistT(){mentorSched(true);try{if(tfresh)localStorage.removeItem('ca_timer');else localStorage.setItem('ca_timer',JSON.stringify({mode,sec,run,endAt,runMin,runSlot,tslot,segStart}))}catch(e){}}
 function restoreT(){let p=null;try{p=JSON.parse(localStorage.getItem('ca_timer')||'null')}catch(e){}if(!p||!p.mode)return;
   if(p.run&&Date.now()-p.endAt>12*36e5){try{localStorage.removeItem('ca_timer')}catch(e){}return}
   mode=p.mode;runMin=p.runMin||25;runSlot=p.runSlot||'';tslot=p.tslot===undefined?null:p.tslot;tfresh=false;
@@ -723,6 +764,61 @@ async function syncNow(manual,retry){const c=GH();if(!c.repo||!c.token){if(manua
   syncing=false}
 addEventListener('visibilitychange',()=>{const c=GH();if(!c.repo||c.auto===false||!c.lastSync)return;if(!document.hidden)syncNow(false);else if((S.updated||0)>c.lastSync)syncNow(false)});
 
+/* ---------- Mentor live share ---------- */
+let menH=0,menBusy=false,menAgain=false,menSha=null,menLast='',menBeat=0;
+const MG=()=>{const c=GH();return{repo:c.mRepo||'',name:c.mName||'',cm:!!c.mCm,on:c.mOn!==false&&!!c.mRepo,link:c.mLink||''}};
+function menSummary(cfg){
+  const t=today(),o={v:1,name:cfg.name||'Student',updated:Date.now(),exams:S.exams||{},goal:S.goal||6};
+  const L=Object.assign({},S.log||{});
+  const days=Object.keys(L).sort();
+  const minOf=d=>d===t?(S.todayMin||0):((L[d]||{}).min||0);
+  const allD=[...new Set([...days,t])].sort();
+  o.totalMin=allD.reduce((a,d)=>a+minOf(d),0);o.todayMin=S.todayMin||0;o.todayPomo=S.todayPomo||0;
+  o.studyDays=allD.filter(d=>minOf(d)>0).length;
+  const last=[];for(let i=29;i>=0;i--){const d=key(new Date(Date.now()-i*864e5));let sc=null;try{sc=dayScore(d)}catch(e){}last.push({d,min:minOf(d),sc})}
+  o.days=last;
+  o.subjects=(S.subjects||[]).map(s=>{const ch=S.chapters.filter(c=>c.subject===s.name);let n=0,cov=0,rev=0;
+    ch.forEach(c=>c.contents.forEach(k=>k.subs.forEach(b=>{n++;if(b.date)cov++;rev+=(b.r||[]).filter(Boolean).length})));
+    return{name:s.name,group:s.group||'',n,cov,rev,total:s.total||0,done:s.done||0}});
+  o.tests=(S.tests||[]).slice(-25).map(x=>({date:x.date,subject:x.subject,chapter:x.chapter,total:x.total,got:x.got,comment:cfg.cm?(x.comment||''):''}));
+  try{const q=qSum();o.q={n:q.t,aa:q.aa,cc:q.cc}}catch(e){}
+  o.slots=(S.slots||[]).map(x=>({from:x.from,to:x.to,title:x.title,type:x.type,ok:!!x.ok}));
+  o.tasks=(S.tasks||[]).map(x=>({text:x.text,subject:x.subject,done:!!x.done}));
+  let lv={on:false};try{if(run){const sl=(S.slots||[]).find(x=>x.id===runSlot);lv={on:true,mode:mode,label:(sl&&sl.title)||'',endAt:endAt||0}}}catch(e){}
+  o.live=lv;return o}
+function menSig(o){const c=JSON.parse(JSON.stringify(o));delete c.updated;if(c.live)delete c.live.endAt;return JSON.stringify(c)}
+function mentorSched(fast){clearTimeout(menH);const c=MG(),g=GH();if(!c.on||!g.token)return;menH=setTimeout(()=>menPush(false),fast?200:10000)}
+async function menPush(manual,retry){const c=MG(),g=GH();if(!c.on||!g.token){if(manual)menMsg('Add the share repository, and set up Sync with a token first.',1);return}
+  if(menBusy){menAgain=true;return}
+  const o=menSummary(c),sig=menSig(o);if(!manual&&sig===menLast&&Date.now()-menBeat<(o.live&&o.live.on?45e3:3*60e3))return;
+  menBusy=true;const cfg={repo:c.repo,token:g.token,path:'progress.json'};
+  try{if(!menSha){const r=await fetch(ghUrl(cfg)+'?t='+Date.now(),{headers:ghHead(cfg),cache:'no-store'});
+      if(r.status===200)menSha=(await r.json()).sha;else if(r.status!==404)throw new Error(r.status===401?'Token rejected (HTTP 401).':r.status===403?'Token has no access to the share repository (HTTP 403).':'GitHub error '+r.status)}
+    const body={message:'progress '+new Date().toISOString(),content:enc(JSON.stringify(o))};if(menSha)body.sha=menSha;
+    const w=await fetch(ghUrl(cfg),{method:'PUT',headers:Object.assign({'Content-Type':'application/json'},ghHead(cfg)),body:JSON.stringify(body)});
+    if(w.status===409||w.status===422){menSha=null;menBusy=false;if(!retry)return menPush(manual,true);throw new Error('Share file changed while saving. Try again.')}
+    if(w.status!==200&&w.status!==201)throw new Error(w.status===404?'Repository not found, or the token lacks write access to it.':'GitHub error '+w.status);
+    menSha=(await w.json()).content.sha;menLast=sig;menBeat=Date.now();menMsg('Shared at '+new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'}));menDot(1)}
+  catch(e){menMsg(/fetch|network|Failed/i.test(e.message)?'Could not reach GitHub (offline?). Will retry.':e.message,1);menDot(0)}
+  menBusy=false;if(menAgain){menAgain=false;setTimeout(()=>menPush(false),300)}}
+function menMsg(m,bad){const e=$('mn-s');if(e){e.textContent=m;e.className='text-xs '+(bad?'text-rose-600':'text-slate-500')}}
+function menDot(ok){const e=$('men-dot');if(e)e.textContent=MG().on?(ok?' ●':' ○'):''}
+function menLink(r){const p=r.split('/');return'https://'+p[0].toLowerCase()+'.github.io/'+p[1]+'/'}
+function openMen(){const c=MG();$('mn-r').value=c.repo;$('mn-n').value=c.name;$('mn-c').checked=c.cm;$('mn-on').checked=GH().mOn!==false;
+  const l=$('mn-l');if(c.repo){l.textContent='Mentor link: '+menLink(c.repo);l.classList.remove('hidden')}else l.classList.add('hidden');
+  menMsg(c.repo?(c.on?'Sharing is on.':'Sharing is paused.'):'Not set up yet.');const d=$('men');d.classList.remove('hidden');d.classList.add('flex')}
+function closeMen(){const d=$('men');d.classList.add('hidden');d.classList.remove('flex')}
+function saveMen(){const r=$('mn-r').value.trim().replace(/^https?:\/\/github\.com\//,'').replace(/\.git$/,'').replace(/\/$/,'');
+  if(!/^[\w.-]+\/[\w.-]+$/.test(r))return menMsg('Enter the repository as username/repo.',1);
+  if(!GH().token)return menMsg('Set up ☁ Sync first (it holds your token), then come back.',1);
+  if(GH().mRepo!==r)menSha=null;
+  setGH({mRepo:r,mName:$('mn-n').value.trim(),mCm:$('mn-c').checked,mOn:$('mn-on').checked});menLast='';openMen();menMsg('Sharing...');menPush(true)}
+function stopMen(){setGH({mOn:false});clearTimeout(menH);openMen();toast('Sharing paused. The old data stays on the mentor page until you share again.')}
+function copyMen(){const c=MG();if(!c.repo)return;const u=menLink(c.repo);try{navigator.clipboard.writeText(u);toast('Mentor link copied.')}catch(e){prompt('Copy this link',u)}}
+setInterval(()=>{if(MG().on&&GH().token&&(!document.hidden||run))menPush(false)},20000);
+addEventListener('visibilitychange',()=>{if(document.hidden&&MG().on)menPush(false)});
+setTimeout(()=>{menDot(0);if(MG().on)menPush(true)},3000);
+
 /* ---------- planner, exam dates ---------- */
 const dTo=v=>{const[y,m,d]=(v||'').split('-').map(Number);if(!y)return null;const t0=new Date();t0.setHours(0,0,0,0);return Math.round((new Date(y,m-1,d)-t0)/864e5)};
 const GRP=['Group 1','Group 2'],gDate=g=>(S.exams||{})[g]||S.exam||'',gDays=g=>dTo(gDate(g));
@@ -771,6 +867,11 @@ function weakList(){const m={},g=(sub,ch)=>m[sub+'|'+ch]||(m[sub+'|'+ch]={sub,ch
   return Object.values(m).sort((a,b)=>(b.n+b.low.length*2)-(a.n+a.low.length*2)).slice(0,8)}
 function weakHtml(){WK=weakList();return WK.map((w,i)=>`<div class="flex items-center justify-between gap-2 text-xs p-2 rounded-lg bg-rose-50 dark:bg-rose-950/30"><span><b>${esc(w.ch)}</b> <span class="text-slate-500">· ${esc(w.sub)} · ${w.n?w.n+' open mistake'+(w.n>1?'s':''):''}${w.n&&w.low.length?', ':''}${w.low.length?'tests '+w.low.join('%, ')+'%':''}</span></span><button onclick="weakToRev(${i})" class="${btn('bg-rose-600')}">Add to revision</button></div>`).join('')}
 function weakCard(){const h=weakHtml();return h?card('border-rose-200 dark:border-rose-900 space-y-2',`<h3 class="font-bold text-sm text-rose-600">Weak topics to revise</h3><p class="text-xs text-slate-500">From your open mistakes and low test scores. Adding one starts an S+1 / S+3 / S+6 schedule from today.</p>${h}`):''}
+let lcrD='';
+function lcrAdd(){S.lcr.push({id:uid(),date:today(),subject:(S.subjects[0]||{}).name||'',lf:'',lt:'',sf:'',st:'',rv:[false,false,false]});save();render()}
+function lcrUp(id,f,v){const r=S.lcr.find(x=>x.id===id);if(!r)return;r[f]=v;save();render()}
+function lcrRv(id,i,v){const r=S.lcr.find(x=>x.id===id);if(!r)return;r.rv=r.rv||[false,false,false];r.rv[i]=v;save();render()}
+function lcrDel(id){if(armed!==id){armed=id;toast('Press the bin again to delete this row.');setTimeout(()=>{if(armed===id)armed=''},3000);return}armed='';S.lcr=S.lcr.filter(x=>x.id!==id);save();render()}
 function addRev(sub,t,ct,sb,dt){let c=S.chapters.find(x=>x.subject===sub&&x.title.toLowerCase()===t.toLowerCase());if(!c){c={id:uid(),subject:sub,module:'',no:'',title:t,contents:[]};S.chapters.push(c)}
   let k=c.contents.find(x=>x.title.toLowerCase()===ct.toLowerCase());if(!k){k={id:uid(),title:ct,subs:[]};c.contents.push(k)}
   let x=k.subs.find(y=>y.title===sb);if(!x){x={id:uid(),title:sb,date:dt,r:[0,0,0]};k.subs.push(x)}else{x.date=dt;x.r=[0,0,0]}save()}
